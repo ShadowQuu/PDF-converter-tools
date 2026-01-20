@@ -1,0 +1,23 @@
+# Python相关
+__pycache__/    # Python编译产生的缓存文件夹
+*.pyc           # Python编译产生的字节码文件
+
+# 虚拟环境
+.venv/          # 您项目中的虚拟环境文件夹
+venv/           # 其他常见的虚拟环境文件夹名称
+env/            # 其他常见的虚拟环境文件夹名称
+
+# 日志文件
+*.log           # 所有日志文件
+logs/           # 日志文件夹
+
+# 编辑器相关
+.vscode/        # VS Code编辑器的配置文件夹
+.idea/          # IntelliJ IDEA编辑器的配置文件夹
+
+# 操作系统相关
+.DS_Store       # macOS系统的隐藏文件
+Thumbs.db       # Windows系统的缩略图缓存文件
+
+# 备份文件
+*.zip           # 我们之前创建的备份文件
