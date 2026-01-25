@@ -6,6 +6,8 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 import os
 import webbrowser
+import re
+from datetime import datetime
 from src.core.html_converter import HtmlConverter
 from src.core.pdf_merger import PdfMerger
 from src.gui.utils import Worker
@@ -123,6 +125,11 @@ class HtmlToPdfTab(QWidget):
         
         # Set default output directory to desktop
         self.output_dir.setText(os.path.expanduser("~\Desktop"))
+        
+        # 连接信号，实现自动生成日期范围名称
+        self.merge_pdfs_check.stateChanged.connect(self.update_default_ebook_name)
+        self.file_list.model().rowsInserted.connect(self.update_default_ebook_name)
+        self.file_list.model().rowsRemoved.connect(self.update_default_ebook_name)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
@@ -143,6 +150,9 @@ class HtmlToPdfTab(QWidget):
             
             if files:
                 self.add_files_to_list(files)
+                # 如果输出目录是默认值或未设置，使用第一个HTML文件的目录作为默认输出目录
+                if not self.output_dir.text() or self.output_dir.text() == os.path.expanduser("~\Desktop"):
+                    self.output_dir.setText(os.path.dirname(files[0]))
 
     def add_files(self):
         files, _ = QFileDialog.getOpenFileNames(
@@ -150,6 +160,9 @@ class HtmlToPdfTab(QWidget):
         )
         if files:
             self.add_files_to_list(files)
+            # 如果输出目录是默认值或未设置，使用第一个HTML文件的目录作为默认输出目录
+            if not self.output_dir.text() or self.output_dir.text() == os.path.expanduser("~\Desktop"):
+                self.output_dir.setText(os.path.dirname(files[0]))
 
     def add_files_to_list(self, files):
         for file_path in files:
@@ -193,6 +206,8 @@ class HtmlToPdfTab(QWidget):
         font_size = self.font_size_combo.currentText()
         open_folder = self.open_folder_check.isChecked()
         merge_pdfs = self.merge_pdfs_check.isChecked()
+        
+        # 直接获取电子书名称，不再在这里生成日期范围
         ebook_name = self.ebook_name.text() if merge_pdfs else None
 
         self.btn_convert.setEnabled(False)
@@ -214,6 +229,70 @@ class HtmlToPdfTab(QWidget):
         for i in range(self.file_list.count()):
             files.append(self.file_list.item(i).data(Qt.ItemDataRole.UserRole))
         return files
+    
+    def extract_date_from_filename(self, filename):
+        """
+        从文件名中提取日期，支持多种日期格式
+        支持格式：[2021-11-12], [2021.11.28], [2021/11/28]等
+        返回datetime对象，如果没有匹配到日期则返回None
+        """
+        # 定义日期正则表达式，支持多种分隔符
+        date_pattern = r'\[(\d{4}[-/.]\d{2}[-/.]\d{2})\]'
+        match = re.search(date_pattern, filename)
+        if match:
+            date_str = match.group(1)
+            # 尝试解析日期，支持多种分隔符
+            for sep in ['-', '.', '/']:
+                try:
+                    return datetime.strptime(date_str, f"%Y{sep}%m{sep}%d")
+                except ValueError:
+                    continue
+        return None
+    
+    def generate_date_range(self, files):
+        """
+        从文件名列表中提取日期范围
+        返回格式化的日期范围字符串，如"[2021.11.12-2025.08.29]"
+        如果没有匹配到日期则返回None
+        """
+        dates = []
+        
+        # 从所有文件名中提取日期
+        for file_path in files:
+            filename = os.path.basename(file_path)
+            date = self.extract_date_from_filename(filename)
+            if date:
+                dates.append(date)
+        
+        if not dates:
+            return None
+        
+        # 计算最小和最大日期
+        min_date = min(dates)
+        max_date = max(dates)
+        
+        # 格式化日期范围，使用点分隔符
+        return f"[{min_date.strftime('%Y.%m.%d')}-{max_date.strftime('%Y.%m.%d')}]"
+    
+    def update_default_ebook_name(self):
+        """
+        自动更新电子书默认名称
+        当用户勾选合并选项或文件列表变化时调用
+        """
+        # 只有当勾选了合并选项时才更新
+        if not self.merge_pdfs_check.isChecked():
+            return
+        
+        # 获取所有文件
+        files = self.get_all_files()
+        if not files:
+            return
+        
+        # 生成日期范围
+        date_range = self.generate_date_range(files)
+        if date_range:
+            # 每次都更新电子书名称，无论用户是否修改过
+            self.ebook_name.setText(date_range)
 
     def convert_files(self, files, output_dir, font_size, merge_pdfs=False, ebook_name="merged_ebook", progress_callback=None):
         """
