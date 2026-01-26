@@ -63,7 +63,7 @@ class ImageConverter:
             if convert_mode == "merge":
                 # Merge all images into one PDF
                 with open(output_path, "wb") as f:
-                    f.write(img2pdf.convert(valid_images))
+                    f.write(img2pdf.convert(valid_images, rotation=img2pdf.Rotation.ifvalid))
             else:
                 # Convert each image to separate PDF
                 # output_path is already a directory for single mode
@@ -75,7 +75,7 @@ class ImageConverter:
                     
                     # Convert single image to PDF
                     with open(single_output_path, "wb") as f:
-                        f.write(img2pdf.convert([img_path]))
+                        f.write(img2pdf.convert([img_path], rotation=img2pdf.Rotation.ifvalid))
             
             # Final progress update
             if progress_callback:
