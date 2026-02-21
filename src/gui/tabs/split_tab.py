@@ -1,46 +1,59 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
+    QVBoxLayout, QHBoxLayout, QLabel, 
     QLineEdit, QPushButton, QFileDialog, QRadioButton, 
-    QButtonGroup, QMessageBox, QProgressBar, QCheckBox
+    QButtonGroup, QMessageBox, QProgressBar, QCheckBox,
+    QGroupBox, QWidget
 )
 from PyQt6.QtCore import Qt
 import os
 from src.core.pdf_splitter import PdfSplitter
 from src.gui.utils import Worker
 import webbrowser
+from typing import Optional
+
 
 class SplitPdfTab(QWidget):
+    """PDF分割标签页"""
+    
     def __init__(self):
         super().__init__()
         self.init_ui()
 
     def init_ui(self):
         layout = QVBoxLayout()
+        layout.setSpacing(15)
+        layout.setContentsMargins(20, 20, 20, 20)
 
-        # Input File Selection
+        # 输入文件选择
+        input_group = QGroupBox("输入文件")
         input_layout = QHBoxLayout()
         self.input_path = QLineEdit()
         self.input_path.setPlaceholderText("选择要分割的PDF文件...")
         self.input_path.setReadOnly(True)
-        btn_browse_input = QPushButton("浏览PDF")
+        btn_browse_input = QPushButton("浏览")
         btn_browse_input.clicked.connect(self.browse_input)
         input_layout.addWidget(self.input_path)
         input_layout.addWidget(btn_browse_input)
-        layout.addLayout(input_layout)
+        input_group.setLayout(input_layout)
+        layout.addWidget(input_group)
 
-        # Output Directory Selection
+        # 输出目录选择
+        output_group = QGroupBox("输出目录")
         output_layout = QHBoxLayout()
         self.output_dir = QLineEdit()
         self.output_dir.setPlaceholderText("选择输出目录...")
         self.output_dir.setReadOnly(True)
-        btn_browse_output = QPushButton("浏览目录")
+        btn_browse_output = QPushButton("浏览")
         btn_browse_output.clicked.connect(self.browse_output)
         output_layout.addWidget(self.output_dir)
         output_layout.addWidget(btn_browse_output)
-        layout.addLayout(output_layout)
+        output_group.setLayout(output_layout)
+        layout.addWidget(output_group)
 
-        # Split Options
+        # 分割选项
+        options_group = QGroupBox("分割选项")
         options_layout = QVBoxLayout()
+        
         self.radio_single = QRadioButton("分割为单页")
         self.radio_range = QRadioButton("提取特定页码")
         self.radio_average = QRadioButton("平均分割为N份")
@@ -64,24 +77,43 @@ class SplitPdfTab(QWidget):
         options_layout.addWidget(self.radio_average)
         options_layout.addWidget(self.average_input)
         options_layout.addWidget(self.radio_outline)
+        options_group.setLayout(options_layout)
+        layout.addWidget(options_group)
         
-        # Open Folder Option
+        # 打开文件夹选项
         self.open_folder_check = QCheckBox("转换后打开文件夹")
-        self.open_folder_check.setChecked(True)  # Default to checked
-        options_layout.addWidget(self.open_folder_check)
-        
-        layout.addLayout(options_layout)
+        self.open_folder_check.setChecked(True)
+        layout.addWidget(self.open_folder_check)
 
-        # Split Button
+        # 分割按钮
         self.btn_split = QPushButton("分割PDF")
         self.btn_split.clicked.connect(self.start_split)
         self.btn_split.setMinimumHeight(40)
+        self.btn_split.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                font-weight: bold;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+            QPushButton:pressed {
+                background-color: #3d8b40;
+            }
+            QPushButton:disabled {
+                background-color: #cccccc;
+            }
+        """)
         layout.addWidget(self.btn_split)
 
-        # Progress Bar
+        # 进度条
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
-        self.progress_bar.setRange(0, 100)  # Set to percentage mode
+        self.progress_bar.setRange(0, 100)
         layout.addWidget(self.progress_bar)
 
         layout.addStretch()
@@ -128,7 +160,7 @@ class SplitPdfTab(QWidget):
             QMessageBox.warning(self, "错误", "请选择输出目录。")
             return
 
-        # Determine split mode
+        # 确定分割模式
         if self.radio_single.isChecked():
             split_mode = "single"
             page_ranges = None
@@ -157,7 +189,7 @@ class SplitPdfTab(QWidget):
             page_ranges = None
             average_parts = None
 
-        # Get open folder option
+        # 获取打开文件夹选项
         open_folder = self.open_folder_check.isChecked()
         
         self.btn_split.setEnabled(False)
