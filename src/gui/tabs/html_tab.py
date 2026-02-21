@@ -8,9 +8,13 @@ import os
 import webbrowser
 import re
 from datetime import datetime
+from pathlib import Path
 from src.core.html_converter import HtmlConverter
 from src.core.pdf_merger import PdfMerger
 from src.gui.utils import Worker
+
+# 跨平台桌面路径
+DESKTOP_PATH = str(Path.home() / "Desktop")
 
 class HtmlToPdfTab(QWidget):
     def __init__(self):
@@ -123,8 +127,8 @@ class HtmlToPdfTab(QWidget):
         # Enable Drag & Drop for the whole tab
         self.setAcceptDrops(True)
         
-        # Set default output directory to desktop
-        self.output_dir.setText(os.path.expanduser("~\Desktop"))
+        # Set default output directory to desktop (cross-platform)
+        self.output_dir.setText(DESKTOP_PATH)
         
         # 连接信号，实现自动生成日期范围名称
         self.merge_pdfs_check.stateChanged.connect(self.update_default_ebook_name)
@@ -151,7 +155,7 @@ class HtmlToPdfTab(QWidget):
             if files:
                 self.add_files_to_list(files)
                 # 如果输出目录是默认值或未设置，使用第一个HTML文件的目录作为默认输出目录
-                if not self.output_dir.text() or self.output_dir.text() == os.path.expanduser("~\Desktop"):
+                if not self.output_dir.text() or self.output_dir.text() == DESKTOP_PATH:
                     self.output_dir.setText(os.path.dirname(files[0]))
 
     def add_files(self):
@@ -161,7 +165,7 @@ class HtmlToPdfTab(QWidget):
         if files:
             self.add_files_to_list(files)
             # 如果输出目录是默认值或未设置，使用第一个HTML文件的目录作为默认输出目录
-            if not self.output_dir.text() or self.output_dir.text() == os.path.expanduser("~\Desktop"):
+            if not self.output_dir.text() or self.output_dir.text() == DESKTOP_PATH:
                 self.output_dir.setText(os.path.dirname(files[0]))
 
     def add_files_to_list(self, files):

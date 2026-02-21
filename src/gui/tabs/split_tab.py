@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 import os
+import re
 from src.core.pdf_splitter import PdfSplitter
 from src.gui.utils import Worker
 import webbrowser
@@ -18,6 +19,52 @@ class SplitPdfTab(QWidget):
     def __init__(self):
         super().__init__()
         self.init_ui()
+
+    def validate_page_ranges(self, range_str):
+        """
+        验证页码范围格式是否正确
+        支持格式：1-5, 8, 10-12
+        
+        Args:
+            range_str: 页码范围字符串
+            
+        Returns:
+            bool: 格式是否正确
+        """
+        # 移除所有空格
+        range_str = range_str.replace(' ', '')
+        if not range_str:
+            return False
+        
+        # 分割多个范围
+        parts = range_str.split(',')
+        
+        for part in parts:
+            if not part:
+                continue
+            # 检查单个页码或范围
+            if '-' in part:
+                # 页码范围，如 1-5
+                try:
+                    start, end = part.split('-')
+                    start_num = int(start)
+                    end_num = int(end)
+                    if start_num <= 0 or end_num <= 0:
+                        return False
+                    if start_num > end_num:
+                        return False
+                except ValueError:
+                    return False
+            else:
+                # 单个页码，如 8
+                try:
+                    num = int(part)
+                    if num <= 0:
+                        return False
+                except ValueError:
+                    return False
+        
+        return True
 
     def init_ui(self):
         layout = QVBoxLayout()
@@ -172,6 +219,11 @@ class SplitPdfTab(QWidget):
             
             if not page_ranges:
                 QMessageBox.warning(self, "错误", "请输入页码范围。")
+                return
+            
+            # 验证页码范围格式
+            if not self.validate_page_ranges(page_ranges):
+                QMessageBox.warning(self, "错误", "页码范围格式无效。\n正确格式示例：1-5, 8, 10-12")
                 return
         elif self.radio_average.isChecked():
             split_mode = "average"

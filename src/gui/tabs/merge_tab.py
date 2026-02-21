@@ -143,6 +143,12 @@ class MergePdfTab(QWidget):
         if len(files_with_titles) < 2:
             QMessageBox.warning(self, "错误", "请至少添加两个PDF文件进行合并。")
             return
+        
+        # Validate all files exist before merging
+        for path, _ in files_with_titles:
+            if not os.path.exists(path):
+                QMessageBox.warning(self, "错误", f"文件不存在：{os.path.basename(path)}")
+                return
 
         output_file, _ = QFileDialog.getSaveFileName(
             self, "保存合并后的PDF", "", "PDF文件 (*.pdf)"

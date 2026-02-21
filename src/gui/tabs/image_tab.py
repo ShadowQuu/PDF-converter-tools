@@ -151,7 +151,7 @@ class ImageToPdfTab(QWidget):
             # Determine the folder to open based on whether output_file is a file or directory
             if os.path.isdir(output_file):
                 open_folder_path = output_file
-                msg_text = "图片已成功转换为单个PDF文件！"
+                msg_text = "图片已成功转换为多个PDF文件！"
                 msg_detail = f"输出目录: {output_file}"
             else:
                 open_folder_path = os.path.dirname(output_file)

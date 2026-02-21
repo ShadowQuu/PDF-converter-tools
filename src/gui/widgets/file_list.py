@@ -54,10 +54,10 @@ class FileListWidget(QListWidget):
     def add_files(self, file_paths):
         for path in file_paths:
             # Check if file already exists in list to avoid duplicates
-            items = self.findItems(os.path.basename(path), Qt.MatchFlag.MatchExactly)
+            # Directly check by path instead of by filename for accuracy
             is_duplicate = False
-            for item in items:
-                if item.data(Qt.ItemDataRole.UserRole) == path:
+            for i in range(self.count()):
+                if self.item(i).data(Qt.ItemDataRole.UserRole) == path:
                     is_duplicate = True
                     break
             
