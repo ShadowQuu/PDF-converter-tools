@@ -4,7 +4,7 @@ PDF页面管理标签页 - 支持页面删除和提取
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
     QLineEdit, QPushButton, QFileDialog, QMessageBox, 
-    QProgressBar, QGroupBox, QRadioButton, QTextEdit
+    QProgressBar, QGroupBox, QRadioButton, QTextEdit, QCheckBox
 )
 from PyQt6.QtCore import Qt
 import os
