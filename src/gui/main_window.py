@@ -9,13 +9,17 @@ from src.gui.tabs.image_tab import ImageToPdfTab
 from src.gui.tabs.merge_tab import MergePdfTab
 from src.gui.tabs.split_tab import SplitPdfTab
 from src.gui.tabs.security_tab import SecurityTab
+from src.gui.tabs.convert_tab import ConvertTab
+from src.gui.tabs.page_manager_tab import PageManagerTab
+from src.gui.tabs.ocr_tab import OcrTab
+from src.gui.tabs.editor_tab import EditorTab
 from src.gui.styles import TAB_WIDGET
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("PDF转换工具 v1.0")
+        self.setWindowTitle("PDF转换工具 v2.0")
         self.setMinimumSize(900, 700)
         
         # Main layout
@@ -41,8 +45,12 @@ class MainWindow(QMainWindow):
     def init_tabs(self):
         self.tabs.addTab(HtmlToPdfTab(), "HTML转PDF")
         self.tabs.addTab(ImageToPdfTab(), "图片转PDF")
+        self.tabs.addTab(ConvertTab(), "PDF转换")
         self.tabs.addTab(MergePdfTab(), "合并PDF")
         self.tabs.addTab(SplitPdfTab(), "分割PDF")
+        self.tabs.addTab(PageManagerTab(), "页面管理")
+        self.tabs.addTab(OcrTab(), "OCR识别")
+        self.tabs.addTab(EditorTab(), "PDF编辑")
         self.tabs.addTab(SecurityTab(), "PDF安全")
         
         # Connect tab change to status bar update
@@ -87,8 +95,12 @@ class MainWindow(QMainWindow):
         tab_names = [
             "HTML转PDF - 将HTML文件转换为PDF格式",
             "图片转PDF - 将图片文件转换为PDF格式",
+            "PDF转换 - PDF转Word/图片",
             "合并PDF - 将多个PDF文件合并为一个",
             "分割PDF - 将PDF文件分割为多个部分",
+            "页面管理 - 删除或提取PDF页面",
+            "OCR识别 - 识别扫描版PDF中的文字",
+            "PDF编辑 - 提取或替换PDF中的文字",
             "PDF安全 - 加密或解密PDF文件"
         ]
         if 0 <= index < len(tab_names):
@@ -99,13 +111,17 @@ class MainWindow(QMainWindow):
         QMessageBox.about(
             self,
             "关于PDF转换工具",
-            "<h3>PDF转换工具 v1.0</h3>"
+            "<h3>PDF转换工具 v2.0</h3>"
             "<p>一个功能强大的PDF处理工具，支持：</p>"
             "<ul>"
             "<li>HTML文件转PDF</li>"
             "<li>图片转PDF</li>"
+            "<li>PDF转Word/图片</li>"
             "<li>PDF合并</li>"
             "<li>PDF分割</li>"
+            "<li>页面管理（删除/提取）</li>"
+            "<li>OCR文字识别</li>"
+            "<li>PDF编辑</li>"
             "<li>PDF加密/解密</li>"
             "</ul>"
             "<p>© 2024 PDF Tool Project</p>"
