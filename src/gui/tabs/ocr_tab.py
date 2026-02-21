@@ -50,7 +50,7 @@ class OcrTab(QWidget):
         lang_layout = QHBoxLayout()
         lang_layout.addWidget(QLabel("识别语言:"))
         self.combo_lang = QComboBox()
-        self.combo_lang.addItems(["中文简体+英文", "英文", "中文繁体"])
+        self.combo_lang.addItems(["中文简体", "英文"])
         lang_layout.addWidget(self.combo_lang)
         lang_layout.addStretch()
         settings_layout.addLayout(lang_layout)
@@ -113,11 +113,10 @@ class OcrTab(QWidget):
     def get_lang_code(self):
         """获取语言代码"""
         lang_map = {
-            "中文简体+英文": "chi_sim+eng",
-            "英文": "eng",
-            "中文繁体": "chi_tra"
+            "中文简体": "ch_sim",
+            "英文": "en"
         }
-        return lang_map.get(self.combo_lang.currentText(), "chi_sim+eng")
+        return lang_map.get(self.combo_lang.currentText(), "ch_sim")
     
     def start_recognize(self):
         input_file = self.input_path.text()

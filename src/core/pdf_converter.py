@@ -4,8 +4,9 @@ PDF转换模块 - 支持PDF转Word和图片
 import os
 import logging
 from pdf2docx import Converter
-from pdf2image import convert_from_path
+import fitz  # PyMuPDF
 from PIL import Image
+import io
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +51,7 @@ class PdfConverter:
     @staticmethod
     def to_images(input_path, output_dir, image_format='png', dpi=200, progress_callback=None):
         """
-        将PDF转换为图片
+        将PDF转换为图片（使用PyMuPDF，无需Poppler）
         
         Args:
             input_path: PDF文件路径
@@ -71,28 +72,47 @@ class PdfConverter:
         try:
             logger.info(f"开始转换PDF到图片: {input_path}")
             
-            # 转换PDF为图片
-            images = convert_from_path(input_path, dpi=dpi)
+            # 使用PyMuPDF打开PDF
+            doc = fitz.open(input_path)
+            total_pages = len(doc)
             
             output_files = []
-            total_pages = len(images)
+            base_name = os.path.splitext(os.path.basename(input_path))[0]
             
-            for i, image in enumerate(images):
+            # 计算缩放比例（72 DPI是PDF默认分辨率）
+            zoom = dpi / 72
+            mat = fitz.Matrix(zoom, zoom)
+            
+            for page_num in range(total_pages):
+                # 获取页面
+                page = doc[page_num]
+                
+                # 将页面渲染为图片
+                pix = page.get_pixmap(matrix=mat)
+                
                 # 生成输出文件名
-                base_name = os.path.splitext(os.path.basename(input_path))[0]
-                output_filename = f"{base_name}_page_{i+1}.{image_format.lower()}"
+                output_filename = f"{base_name}_page_{page_num + 1}.{image_format.lower()}"
                 output_path = os.path.join(output_dir, output_filename)
                 
                 # 保存图片
                 if image_format.lower() in ['jpg', 'jpeg']:
-                    image = image.convert('RGB')
-                image.save(output_path, image_format.upper())
+                    # 转换为PIL Image再保存为JPEG
+                    img_data = pix.tobytes("ppm")
+                    img = Image.open(io.BytesIO(img_data))
+                    img = img.convert('RGB')
+                    img.save(output_path, "JPEG", quality=95)
+                else:
+                    # 直接保存为PNG
+                    pix.save(output_path)
+                
                 output_files.append(output_path)
                 
                 # 更新进度
                 if progress_callback:
-                    progress = int(((i + 1) / total_pages) * 100)
+                    progress = int(((page_num + 1) / total_pages) * 100)
                     progress_callback(progress)
+            
+            doc.close()
             
             logger.info(f"PDF转图片成功，共{len(output_files)}页")
             return output_files
