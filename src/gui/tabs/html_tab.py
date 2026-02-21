@@ -198,12 +198,12 @@ class HtmlToPdfTab(QWidget):
     def start_conversion(self):
         files = self.get_all_files()
         if not files:
-            QMessageBox.warning(self, "Error", "Please add at least one HTML file.")
+            QMessageBox.warning(self, "错误", "请至少添加一个HTML文件。")
             return
 
         output_dir = self.output_dir.text()
         if not output_dir or not os.path.exists(output_dir):
-            QMessageBox.warning(self, "Error", "Please select a valid output directory.")
+            QMessageBox.warning(self, "错误", "请选择有效的输出目录。")
             return
 
         # Get conversion settings

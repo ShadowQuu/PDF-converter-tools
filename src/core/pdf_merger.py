@@ -1,5 +1,9 @@
+import logging
 from pypdf import PdfWriter, PdfReader
 import os
+
+logger = logging.getLogger(__name__)
+
 
 class PdfMerger:
     @staticmethod
@@ -13,6 +17,7 @@ class PdfMerger:
         
         current_page = 0
         total_items = len(pdf_items)
+        failed_files = []
 
         for i, item in enumerate(pdf_items):
             if isinstance(item, tuple):
@@ -22,6 +27,8 @@ class PdfMerger:
                 title = None
 
             if not os.path.exists(path):
+                logger.warning(f"文件不存在，已跳过: {path}")
+                failed_files.append((path, "文件不存在"))
                 continue
             
             try:
@@ -30,27 +37,32 @@ class PdfMerger:
                 merger.append(reader)
                 
                 if title:
-                    # Add bookmark pointing to the first page of this appended file
-                    # The page number in the new document is current_page
                     merger.add_outline_item(title, current_page)
                 
                 current_page += num_pages
                 
-                # Update progress after each PDF processed
                 if progress_callback and total_items > 0:
-                    progress = int(((i + 1) / total_items) * 90)  # 90% for processing PDFs
+                    progress = int(((i + 1) / total_items) * 90)
                     progress_callback(progress)
                 
             except Exception as e:
-                print(f"Error appending {path}: {e}")
+                logger.error(f"添加文件失败 {path}: {e}")
+                failed_files.append((os.path.basename(path), str(e)))
                 continue
 
         with open(output_path, "wb") as f:
             merger.write(f)
         
-        # Final progress update
         if progress_callback:
-            progress_callback(100)  # 100% when done
+            progress_callback(100)
         
         merger.close()
+        
+        # 如果有失败的文件，抛出异常告知用户
+        if failed_files:
+            error_msg = "以下文件处理失败:\n"
+            for filename, error in failed_files:
+                error_msg += f"- {filename}: {error}\n"
+            raise Exception(error_msg.strip())
+        
         return True

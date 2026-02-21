@@ -96,7 +96,7 @@ class ImageToPdfTab(QWidget):
 
     def add_images(self):
         files, _ = QFileDialog.getOpenFileNames(
-            self, "Select Images", "", "Images (*.jpg *.jpeg *.png *.bmp)"
+            self, "选择图片", "", "图片文件 (*.jpg *.jpeg *.png *.bmp)"
         )
         if files:
             self.file_list.add_files(files)

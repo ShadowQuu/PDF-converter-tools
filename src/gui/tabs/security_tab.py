@@ -198,8 +198,8 @@ class SecurityTab(QWidget):
             QMessageBox.warning(self, "错误", "两次输入的密码不一致，请重新输入。")
             self.enc_password_confirm.clear()
             return
-        if len(password) < 4:
-            QMessageBox.warning(self, "错误", "密码长度至少为4个字符。")
+        if len(password) < 6:
+            QMessageBox.warning(self, "错误", "密码长度至少为6个字符。")
             return
 
         output_file, _ = QFileDialog.getSaveFileName(

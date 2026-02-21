@@ -1,6 +1,9 @@
 import os
+import logging
 from pypdf import PdfReader, PdfWriter
 from typing import List, Dict, Any, Optional, Tuple
+
+logger = logging.getLogger(__name__)
 
 class PdfSplitter:
     @staticmethod
@@ -78,7 +81,7 @@ class PdfSplitter:
                 for item in reader.outline:
                     PdfSplitter._process_outline_item(item, outlines)
         except Exception as e:
-            print(f"Error getting outlines: {e}")
+            logger.error(f"获取大纲时出错: {e}")
         
         # 如果方法1失败，尝试方法2：直接访问reader._get_outlines()
         if not outlines:
@@ -88,7 +91,7 @@ class PdfSplitter:
                     for outline in raw_outlines:
                         PdfSplitter._process_outline_item(outline, outlines)
             except Exception as e:
-                print(f"Error using _get_outlines: {e}")
+                logger.error(f"使用_get_outlines获取大纲时出错: {e}")
         
         # 如果方法2失败，尝试方法3：直接访问reader._outlines
         if not outlines:
@@ -97,7 +100,7 @@ class PdfSplitter:
                     for outline in reader._outlines:
                         PdfSplitter._process_outline_item(outline, outlines)
             except Exception as e:
-                print(f"Error accessing _outlines: {e}")
+                logger.error(f"访问_outlines获取大纲时出错: {e}")
         
         return outlines
     
@@ -196,6 +199,23 @@ class PdfSplitter:
             # 解析页码范围
             parts = [p.strip() for p in page_ranges.split(',')]
             total_parts = len(parts)
+            
+            # 验证所有页码是否在有效范围内
+            for part in parts:
+                if '-' in part:
+                    start, end = map(int, part.split('-'))
+                    if start < 1 or end < 1:
+                        raise ValueError(f"页码必须大于0，输入的范围 '{part}' 无效")
+                    if start > total_pages or end > total_pages:
+                        raise ValueError(f"页码超出范围：PDF只有{total_pages}页，输入的范围 '{part}' 无效")
+                    if start > end:
+                        raise ValueError(f"起始页码不能大于结束页码，输入的范围 '{part}' 无效")
+                else:
+                    page_num = int(part)
+                    if page_num < 1:
+                        raise ValueError(f"页码必须大于0，输入的页码 '{part}' 无效")
+                    if page_num > total_pages:
+                        raise ValueError(f"页码超出范围：PDF只有{total_pages}页，输入的页码 '{page_num}' 无效")
             
             for part_index, part in enumerate(parts):
                 # 解析单个页码范围
